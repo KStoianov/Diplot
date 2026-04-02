@@ -10,7 +10,7 @@ import { useLanguage } from './components/LanguageContext';
 // 🔗 Дефинираме адреса на сървъра
 const API_URL = "http://localhost:5000";
 
-// 📂 Пътищата вече сочат към сървъра
+// 📂 Пътищата към твоите 3000x4000 снимки
 const dayImages = [
     `${API_URL}/uploads/home_photos/day1.jpg`,
     `${API_URL}/uploads/home_photos/day2.jpg`
@@ -32,11 +32,13 @@ const Home = () => {
     const { t, language } = useLanguage();
     const { scrollY } = useScroll();
 
-    // Паралакс и визуални ефекти
-    const yHero = useTransform(scrollY, [0, 800], [0, 200]);
+    // ✨ ОПТИМИЗИРАНИ ЕФЕКТИ ЗА ВИСОКА РЕЗОЛЮЦИЯ
+    const yHero = useTransform(scrollY, [0, 800], [0, 150]);
     const opacityHero = useTransform(scrollY, [0, 400], [1, 0]);
-    const blurBg = useTransform(scrollY, [0, 600], ['blur(0px)', 'blur(20px)']);
-    const scaleBg = useTransform(scrollY, [0, 1000], [1.05, 1.15]);
+    // Намаляваме максималния blur до 12px, за да не се губи красотата на снимката
+    const blurBg = useTransform(scrollY, [0, 600], ['blur(0px)', 'blur(12px)']);
+    // Тъй като снимките са 3000px+, можем да си позволим по-голям зум (1.10) без пиксели
+    const scaleBg = useTransform(scrollY, [0, 1000], [1.0, 1.10]);
 
     const quickIdeas = [
         { text: t('tropicalParadise'), icon: <FiSun /> },
@@ -44,7 +46,6 @@ const Home = () => {
         { text: t('unknownAdventure'), icon: <FiCompass /> }
     ];
 
-    // Функция за избиране на случайна снимка спрямо темата
     const updateBackground = () => {
         const isDark = document.documentElement.classList.contains('dark');
         const images = isDark ? nightImages : dayImages;
@@ -59,20 +60,15 @@ const Home = () => {
             return;
         }
         setUser(storedUser);
-
-        // Първоначално зареждане на фон
         updateBackground();
 
         axios.get(`${API_URL}/api/hotels`)
             .then(res => setAvailableHotels(res.data))
             .catch(err => console.error("Грешка при зареждане на хотелите"));
 
-        // Следене за смяна на Dark Mode (чрез класа на html тага)
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    updateBackground();
-                }
+                if (mutation.attributeName === 'class') updateBackground();
             });
         });
 
@@ -123,19 +119,21 @@ const Home = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            transition={{ duration: 1.2 }}
+                            transition={{ duration: 1.5, ease: "easeInOut" }}
                             className="w-full h-full object-cover"
-                            alt="Background"
-                            onError={(e) => {
-                                console.error("Неуспешно зареждане на фонова снимка:", bgImage);
+                            style={{ 
+                                // 'center 35%' фокусира снимката малко над средата (идеално за пейзажи с небе)
+                                objectPosition: 'center 35%',
+                                imageRendering: 'auto'
                             }}
+                            alt="Background"
                         />
                     </AnimatePresence>
                 </motion.div>
 
-                {/* ОВЪРЛЕЙ ЗА ЧЕТИМОСТ */}
-                <div className="absolute inset-0 bg-white/30 dark:bg-[#0B1121]/70 transition-colors duration-1000"></div>
-                <div className="absolute bottom-0 left-0 w-full h-[60vh] bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA]/80 to-transparent dark:from-[#0B1121] dark:via-[#0B1121]/90 transition-colors duration-1000"></div>
+                {/* 🛠️ ОВЪРЛЕЙ ЗА ЧЕТИМОСТ (Увеличен интензитет за по-наситени авторски снимки) */}
+                <div className="absolute inset-0 bg-white/20 dark:bg-[#0B1121]/75 transition-colors duration-1000"></div>
+                <div className="absolute bottom-0 left-0 w-full h-[70vh] bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA]/60 to-transparent dark:from-[#0B1121] dark:via-[#0B1121]/80 transition-colors duration-1000"></div>
             </div>
 
             {/* 🕊️ HERO SECTION */}
@@ -147,7 +145,7 @@ const Home = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
                     >
                         <h1 className="text-5xl md:text-7xl lg:text-[6rem] font-black text-slate-900 dark:text-white tracking-tighter leading-[1.1] mb-6 drop-shadow-sm">
                             {t('heroTitle1')} <br />
@@ -165,10 +163,10 @@ const Home = () => {
                         className="w-full max-w-3xl mx-auto relative group"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.8, delay: 0.4 }}
                     >
                         <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-blue-500 to-indigo-500 rounded-[2rem] blur opacity-25 group-focus-within:opacity-50 transition duration-700"></div>
-                        <div className="relative flex flex-col md:flex-row items-center bg-white/80 dark:bg-[#151E32]/80 backdrop-blur-2xl p-2 md:rounded-[2rem] rounded-3xl border border-white/60 dark:border-white/10 shadow-xl">
+                        <div className="relative flex flex-col md:flex-row items-center bg-white/80 dark:bg-[#151E32]/85 backdrop-blur-2xl p-2 md:rounded-[2rem] rounded-3xl border border-white/60 dark:border-white/10 shadow-xl">
                             <input
                                 type="text"
                                 value={wish}
@@ -180,7 +178,7 @@ const Home = () => {
                             <button
                                 onClick={askGemma}
                                 disabled={loading || !wish}
-                                className="w-full md:w-auto bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 text-white dark:text-slate-900 px-10 py-5 md:py-4 rounded-full md:rounded-[1.5rem] font-bold transition-all flex items-center justify-center gap-3 shrink-0 active:scale-95"
+                                className="w-full md:w-auto bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 text-white dark:text-slate-900 px-10 py-5 md:py-4 rounded-full md:rounded-[1.5rem] font-bold transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg"
                             >
                                 {loading ? (
                                     <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -202,7 +200,7 @@ const Home = () => {
                             <button
                                 key={index}
                                 onClick={() => setWish(idea.text)}
-                                className="px-6 py-3 rounded-full bg-white/60 dark:bg-[#151E32]/50 border border-white/60 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all font-medium text-sm flex items-center gap-2 backdrop-blur-md shadow-sm"
+                                className="px-6 py-3 rounded-full bg-white/60 dark:bg-[#151E32]/60 border border-white/60 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all font-medium text-sm flex items-center gap-2 backdrop-blur-md shadow-sm"
                             >
                                 <span className="text-teal-600 dark:text-teal-400">{idea.icon}</span>
                                 {idea.text}
@@ -212,7 +210,7 @@ const Home = () => {
                 </div>
             </motion.div>
 
-            {/* 📸 RECOMMENDATIONS */}
+            {/* 📸 RECOMMENDATIONS SECTION */}
             {recommendedHotels.length > 0 && (
                 <div className="relative z-10 max-w-[1100px] mx-auto px-4 pb-40 pt-20">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12 px-4">
@@ -231,13 +229,13 @@ const Home = () => {
                                 initial={{ opacity: 0, y: 50 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-100px" }}
-                                transition={{ delay: idx * 0.15, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                                transition={{ delay: idx * 0.15, duration: 0.7 }}
                             >
                                 <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden mb-6 shadow-lg border border-slate-200/60 dark:border-white/5">
                                     <img
                                         src={hotel.images?.exterior || hotel.image}
                                         alt={hotel.name}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105"
                                         onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"; }}
                                     />
                                     <div className="absolute top-5 left-5 bg-white/40 dark:bg-black/40 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest">

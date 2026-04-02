@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
@@ -8,9 +8,10 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { FiArrowLeft, FiMapPin, FiNavigation, FiCalendar, FiBriefcase, FiX, FiCheckCircle, FiChevronRight, FiAlertCircle, FiClock, FiTrash2, FiDownload } from 'react-icons/fi';
 
-// 🌍 ТУК Е ПОПРАВКАТА В ПЪТЯ:
+// 🌍 ИМПОРТ НА ГЛОБАЛНИЯ ЕЗИК
 import { useLanguage } from './LanguageContext';
 
+// Fix Leaflet default icon paths
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -18,8 +19,19 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
 });
 
-const dayImages = ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2500&q=80", "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=2500&q=80"];
-const nightImages = ["https://images.unsplash.com/photo-1514810771018-276192729582?auto=format&fit=crop&w=2500&q=80", "https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&w=2500&q=80"];
+// 🔗 Конфигурация на сървъра
+const API_URL = "http://localhost:5000";
+
+// 📂 Твоите авторски снимки
+const dayImages = [
+    `${API_URL}/uploads/home_photos/day1.jpg`,
+    `${API_URL}/uploads/home_photos/day2.jpg`
+];
+
+const nightImages = [
+    `${API_URL}/uploads/home_photos/night1.jpg`,
+    `${API_URL}/uploads/home_photos/night2.jpg`
+];
 
 const createCustomIcon = (bgColor = '#14b8a6') => new L.divIcon({
     html: `<div style="background: ${bgColor}; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 2px solid white;"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>`,
@@ -40,20 +52,39 @@ const MyTrips = () => {
     const [activeRoute, setActiveRoute] = useState(null);
     const [travelMode, setTravelMode] = useState('driving');
     const [routeInfo, setRouteInfo] = useState(null);
-
-    const { scrollY } = useScroll();
-    const blurBg = useTransform(scrollY, [0, 400], ['blur(0px)', 'blur(20px)']);
     const [bgImage, setBgImage] = useState('');
 
-    useEffect(() => {
+    const { scrollY } = useScroll();
+    
+    // ✨ Оптимизирани ефекти за 3000x4000 резолюция
+    const blurBg = useTransform(scrollY, [0, 400], ['blur(0px)', 'blur(20px)']);
+    const scaleBg = useTransform(scrollY, [0, 1000], [1.0, 1.07]);
+
+    const updateBackground = () => {
         const isDark = document.documentElement.classList.contains('dark');
-        setBgImage(isDark ? nightImages[Math.floor(Math.random() * nightImages.length)] : dayImages[Math.floor(Math.random() * dayImages.length)]);
+        const images = isDark ? nightImages : dayImages;
+        const randomPic = images[Math.floor(Math.random() * images.length)];
+        setBgImage(randomPic);
+    };
+
+    useEffect(() => {
+        updateBackground();
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (!storedUser) navigate('/login');
         else {
             setUser(storedUser);
             if (storedUser.pastTrips) setPastTrips(storedUser.pastTrips.filter(trip => trip?.hotel?.name));
         }
+
+        // Следене за смяна на темата
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') updateBackground();
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+        return () => observer.disconnect();
     }, [navigate]);
 
     const handleFinalize = async (tripIndex, e, skipLogistics = false) => {
@@ -62,7 +93,7 @@ const MyTrips = () => {
         const address = pickupAddresses[tripIndex] || '';
         setLoadingIndex(tripIndex);
         try {
-            const res = await axios.post(`http://localhost:5000/api/users/${user._id}/trip/${tripIndex}/logistics`, { pickupCity: city, pickupAddress: address, skipLogistics });
+            const res = await axios.post(`${API_URL}/api/users/${user._id}/trip/${tripIndex}/logistics`, { pickupCity: city, pickupAddress: address, skipLogistics });
             const updatedUser = res.data.user;
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
@@ -75,7 +106,7 @@ const MyTrips = () => {
         e.stopPropagation();
         if (!window.confirm(language === 'en' ? "Are you sure?" : "Сигурни ли сте?")) return;
         try {
-            await axios.delete(`http://localhost:5000/api/users/${user._id}/trip/${tripIndex}`);
+            await axios.delete(`${API_URL}/api/users/${user._id}/trip/${tripIndex}`);
             const updatedUser = { ...user };
             updatedUser.pastTrips.splice(tripIndex, 1);
             localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -123,13 +154,34 @@ const MyTrips = () => {
 
     return (
         <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#080C14] font-sans selection:bg-teal-500/30 transition-colors duration-700">
+            
+            {/* 🎬 CINEMATIC IMAGE BACKGROUND (Updated logic) */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 bg-[#080C14] transition-colors duration-1000"></div>
-                <motion.div key={bgImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2 }} className="absolute inset-0 bg-cover bg-center opacity-20 blur-[10px]" style={{ filter: blurBg, backgroundImage: `url(${bgImage})` }} />
+                <motion.div 
+                    className="absolute inset-0 w-full h-full" 
+                    style={{ filter: blurBg, scale: scaleBg }}
+                >
+                    <AnimatePresence mode="wait">
+                        <motion.img 
+                            key={bgImage}
+                            src={bgImage}
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            transition={{ duration: 1.5 }}
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: 'center 35%' }}
+                        />
+                    </AnimatePresence>
+                </motion.div>
+
+                {/* Overlays */}
+                <div className="absolute inset-0 bg-white/40 dark:bg-[#080C14]/85 transition-colors duration-1000"></div>
                 <div className="absolute bottom-0 left-0 w-full h-[80vh] bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB]/40 to-transparent dark:from-[#080C14] dark:via-[#080C14]/70"></div>
             </div>
 
             <div className="relative z-10 pt-32 pb-40 px-6 md:px-12 lg:px-24 max-w-[1600px] mx-auto">
+                {/* ... Header and List logic remains the same ... */}
                 <motion.header className="mb-28" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
                     <motion.button onClick={() => navigate('/home')} className="mb-12 inline-flex items-center gap-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold uppercase text-[9px] tracking-[0.5em] transition-all" whileHover={{ x: -8 }}>
                         <FiArrowLeft /> {t('backToSearch')}
@@ -156,7 +208,6 @@ const MyTrips = () => {
                                 
                                 <div className="w-full md:w-1/3 h-64 md:h-auto relative overflow-hidden shrink-0">
                                     <img src={trip.hotel?.images?.exterior || trip.hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945"} className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] ${!isPending && 'group-hover:scale-105'}`} alt={trip.hotel?.name} />
-                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-all"></div>
                                     <div className="absolute top-6 left-6 bg-white/90 dark:bg-black/40 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-widest shadow-lg">
                                         {t(trip.type) || 'Stay'}
                                     </div>
@@ -222,6 +273,7 @@ const MyTrips = () => {
                 </div>
             </div>
 
+            {/* Modal Logic remains the same ... */}
             <AnimatePresence>
                 {selectedTrip && (
                     <motion.div className="fixed inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center z-[100] p-4 md:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
@@ -18,14 +18,18 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
 });
 
+// 🔗 Конфигурация на сървъра
+const API_URL = "http://localhost:5000";
+
+// 📂 Пътища към твоите авторски 3000x4000 снимки
 const dayImages = [
-    "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=2500&q=80",
-    "https://images.unsplash.com/photo-1540206351-d730f1c742f6?auto=format&fit=crop&w=2500&q=80"
+    `${API_URL}/uploads/home_photos/day1.jpg`,
+    `${API_URL}/uploads/home_photos/day2.jpg`
 ];
 
 const nightImages = [
-    "https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&w=2500&q=80",
-    "https://images.unsplash.com/photo-1498307833015-e7b400441eb8?auto=format&fit=crop&w=2500&q=80"
+    `${API_URL}/uploads/home_photos/night1.jpg`,
+    `${API_URL}/uploads/home_photos/night2.jpg`
 ];
 
 const createCustomIcon = (bgColor = '#ef4444') => new L.divIcon({
@@ -38,8 +42,6 @@ const createCustomIcon = (bgColor = '#ef4444') => new L.divIcon({
 
 const Profile = () => {
     const navigate = useNavigate();
-
-    // 🌍 ВЗИМАМЕ ФУНКЦИЯТА t И ЕЗИКА
     const { t, language } = useLanguage();
 
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
@@ -51,20 +53,22 @@ const Profile = () => {
     const duration = 7;
 
     const { scrollY } = useScroll();
-    const blurBg = useTransform(scrollY, [0, 400], ['blur(0px)', 'blur(40px)']);
+    const blurBg = useTransform(scrollY, [0, 400], ['blur(0px)', 'blur(25px)']);
+    const scaleBg = useTransform(scrollY, [0, 1000], [1.0, 1.08]);
+
+    const updateBackground = () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        const images = isDark ? nightImages : dayImages;
+        const randomPic = images[Math.floor(Math.random() * images.length)];
+        setBgImage(randomPic);
+    };
 
     useEffect(() => {
         if (!user) { navigate('/login'); return; }
 
-        const setInitialBg = () => {
-            const isDark = document.documentElement.classList.contains('dark');
-            setBgImage(isDark
-                ? nightImages[Math.floor(Math.random() * nightImages.length)]
-                : dayImages[Math.floor(Math.random() * dayImages.length)]);
-        };
-        setInitialBg();
+        updateBackground();
 
-        axios.get('http://localhost:5000/api/hotels')
+        axios.get(`${API_URL}/api/hotels`)
             .then(res => {
                 const favs = res.data.filter(hotel => user.favorites?.includes(hotel._id));
                 setFavoriteHotels(favs);
@@ -74,11 +78,20 @@ const Profile = () => {
                 console.error("Грешка:", err);
                 setLoading(false);
             });
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') updateBackground();
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+        return () => observer.disconnect();
     }, [user, navigate]);
 
     const removeFavorite = async (hotelId) => {
         try {
-            const res = await axios.post(`http://localhost:5000/api/users/${user._id}/favorite`, { hotelId });
+            const res = await axios.post(`${API_URL}/api/users/${user._id}/favorite`, { hotelId });
             localStorage.setItem('user', JSON.stringify(res.data.user));
             setUser(res.data.user);
             setFavoriteHotels(prev => prev.filter(h => h._id !== hotelId));
@@ -90,7 +103,7 @@ const Profile = () => {
         if (!storedUser?._id) { navigate('/login'); return; }
         try {
             const startDate = new Date().toISOString().split('T')[0];
-            const res = await axios.post(`http://localhost:5000/api/users/${storedUser._id}/book`, { hotel, duration, startDate });
+            const res = await axios.post(`${API_URL}/api/users/${storedUser._id}/book`, { hotel, duration, startDate });
             localStorage.setItem('user', JSON.stringify(res.data.user));
             setBookedTrip(res.data.trip);
         } catch (error) {
@@ -119,13 +132,22 @@ const Profile = () => {
         <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B1121] font-sans transition-colors relative">
 
             {/* 🎬 CINEMATIC BACKGROUND */}
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#F8F9FA] dark:bg-[#0B1121]">
-                <motion.div className="absolute inset-0 w-full h-full" style={{ filter: blurBg }}>
-                    {bgImage && (
-                        <motion.img key={bgImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5 }} src={bgImage} className="w-full h-full object-cover scale-105" />
-                    )}
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+                <motion.div className="absolute inset-0 w-full h-full" style={{ filter: blurBg, scale: scaleBg }}>
+                    <AnimatePresence mode="wait">
+                        <motion.img 
+                            key={bgImage} 
+                            src={bgImage} 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            transition={{ duration: 1.5 }} 
+                            className="w-full h-full object-cover" 
+                            style={{ objectPosition: 'center 35%' }}
+                        />
+                    </AnimatePresence>
                 </motion.div>
-                <div className="absolute inset-0 bg-white/50 dark:bg-[#0B1121]/80 transition-colors duration-1000"></div>
+                <div className="absolute inset-0 bg-white/40 dark:bg-[#0B1121]/80 transition-colors duration-1000"></div>
                 <div className="absolute bottom-0 left-0 w-full h-[60vh] bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA]/70 to-transparent dark:from-[#0B1121] dark:via-[#0B1121]/80 transition-colors duration-1000"></div>
             </div>
 
@@ -155,7 +177,7 @@ const Profile = () => {
                 </motion.div>
             </div>
 
-            {/* 📸 FAVORITES SECTION - МАЧВА ДИЗАЙНА ОТ ТЪРСАЧКАТА */}
+            {/* 📸 FAVORITES SECTION */}
             <div className="relative z-10 max-w-[1100px] mx-auto px-4 pb-40">
                 <div className="flex items-center gap-4 mb-12 px-4">
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">{t('favoritePlaces')}</h2>
@@ -187,12 +209,10 @@ const Profile = () => {
                                     />
                                     <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/40 transition-colors duration-500"></div>
 
-                                    {/* Категория горе вляво */}
                                     <div className="absolute top-4 left-4 bg-white/40 dark:bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest shadow-sm">
                                         {t(hotel.category)}
                                     </div>
                                     
-                                    {/* Премахване от любими - Бутон сърце горе вдясно */}
                                     <motion.button
                                         onClick={(e) => { e.stopPropagation(); removeFavorite(hotel._id); }}
                                         className="absolute top-4 right-4 w-8 h-8 bg-white/90 dark:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 shadow-xl"
@@ -201,14 +221,11 @@ const Profile = () => {
                                         <FiHeart className="fill-current w-4 h-4" />
                                     </motion.button>
 
-                                    {/* Текстът вътре в снимката долу */}
                                     <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                                         <div className="flex items-center gap-1.5 text-white/80 text-[11px] font-bold uppercase tracking-widest mb-1.5">
                                             <FiMapPin className="text-teal-400 w-3.5 h-3.5" />{hotel.location}
                                         </div>
-                                        <h4 className="text-2xl font-bold text-white leading-snug mb-3">
-                                            {hotel.name}
-                                        </h4>
+                                        <h4 className="text-2xl font-bold text-white leading-snug mb-3">{hotel.name}</h4>
                                         <div className="flex justify-between items-center pt-3 border-t border-white/20">
                                             <div>
                                                 <p className="text-[9px] text-white/60 uppercase tracking-widest font-black mb-0.5">{t('perNight')}</p>
@@ -226,7 +243,7 @@ const Profile = () => {
                 )}
             </div>
 
-            {/* 🗺️ MODAL WITH LEAFLET FIX */}
+            {/* 🗺️ MODAL WITH LEAFLET */}
             <AnimatePresence>
                 {selectedHotel && (
                     <motion.div
@@ -239,7 +256,6 @@ const Profile = () => {
                             initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* Map Section with Absolute Fix */}
                             <div className="w-full md:w-[45%] h-72 md:h-auto bg-slate-200 relative flex-shrink-0 border-r border-white/10">
                                 <div className="absolute inset-0 z-0">
                                     <MapContainer center={[selectedHotel.lat || 42, selectedHotel.lng || 23]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
@@ -251,7 +267,6 @@ const Profile = () => {
                                 </div>
                             </div>
 
-                            {/* Content Section */}
                             <div className="w-full md:w-[55%] p-10 flex flex-col overflow-y-auto custom-scrollbar">
                                 <div className="flex justify-between items-start mb-8">
                                     <div>
@@ -274,10 +289,7 @@ const Profile = () => {
                                     </div>
                                     <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
                                         <h3 className="text-xs font-black uppercase text-slate-400 mb-2">{t('transport')}</h3>
-                                        {/* 🌍 ТУК ИДВА ЛУКСОЗНИЯТ ПРЕВОД ОТ СТЪПКА 1 */}
-                                        <p className="font-bold text-slate-900 dark:text-white text-sm leading-relaxed">
-                                            {t('vipTransportDesc') || 'VIP Mercedes Service Included'}
-                                        </p>
+                                        <p className="font-bold text-slate-900 dark:text-white text-sm leading-relaxed">{t('vipTransportDesc') || 'VIP Mercedes Service Included'}</p>
                                     </div>
                                 </div>
 
