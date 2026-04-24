@@ -34,7 +34,7 @@ const SearchResults = () => {
 
     const { results, aiMessage, duration } = location.state || { results: [], aiMessage: null, duration: 7 };
 
-    // 📅 ДЕФОЛТНИ ДАТИ
+    //  ДЕФОЛТНИ ДАТИ
     const todayStr = new Date().toISOString().split('T')[0];
     const initialEndDate = new Date();
     initialEndDate.setDate(initialEndDate.getDate() + (duration || 7));
@@ -51,7 +51,7 @@ const SearchResults = () => {
         return user?.favorites || [];
     });
 
-    // 🧠 ДИНАМИЧНО ПРЕСМЯТАНЕ НА ДНИТЕ
+    //  ДИНАМИЧНО ПРЕСМЯТАНЕ НА ДНИТЕ
     const actualDuration = useMemo(() => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -201,7 +201,7 @@ const SearchResults = () => {
                 </div>
             </div>
 
-            {/* 🗺️ THE GALLANT MODAL */}
+            {/*  THE GALLANT MODAL */}
             <AnimatePresence>
                 {selectedHotel && (
                     <motion.div
@@ -282,7 +282,7 @@ const SearchResults = () => {
                                     </div>
                                 </div>
 
-                                {/* 📅 DATES & ACTION BAR */}
+                                {/*  DATES & ACTION BAR */}
                                 <div className="mt-auto pt-8 border-t border-slate-100 dark:border-white/5">
                                     <div className="flex flex-col xl:flex-row gap-4 mb-6">
                                         <div className="flex-1 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/5">

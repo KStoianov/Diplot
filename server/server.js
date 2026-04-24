@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // =========================================================================
-// 📸 СТАТИЧНИ ФАЙЛОВЕ (ЗА СНИМКИТЕ)
+//  СТАТИЧНИ ФАЙЛОВЕ (ЗА СНИМКИТЕ)
 // =========================================================================
 const uploadsPath = path.join(__dirname, 'public', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
@@ -29,7 +29,7 @@ mongoose.connect('mongodb://localhost:27017/diplot_travel_agency_db')
     .catch(err => console.error('❌ MongoDB грешка:', err));
 
 // =========================================================================
-// 👑 АДМИН МАРШРУТИ (ЗА СТАТИСТИКАТА И ДАННИТЕ)
+//  АДМИН МАРШРУТИ (ЗА СТАТИСТИКАТА И ДАННИТЕ)
 // =========================================================================
 app.get('/api/users', async (req, res) => {
     try { res.json(await User.find().select('-password')); }
@@ -58,7 +58,7 @@ app.get('/api/hotels', async (req, res) => {
 });
 
 // =========================================================================
-// 🔐 АВТЕНТИКАЦИЯ (LOGIN & REGISTER)
+//  АВТЕНТИКАЦИЯ (LOGIN & REGISTER)
 // =========================================================================
 app.post('/api/users/login', async (req, res) => {
     try {
@@ -116,7 +116,7 @@ app.post('/api/users/:id/favorite', async (req, res) => {
 });
 
 // =========================================================================
-// 🏨 ЗАПАЗВАНЕ НА ХОТЕЛ (БЕЗ ЛОГИСТИКА)
+//  ЗАПАЗВАНЕ НА ХОТЕЛ (БЕЗ ЛОГИСТИКА)
 // =========================================================================
 app.post('/api/users/:id/book', async (req, res) => {
     try {
@@ -173,7 +173,7 @@ app.post('/api/users/:id/book', async (req, res) => {
         if (isBookedOut) {
             return res.status(400).json({ message: "Хотелът няма достатъчно свободни стаи за тези дати! 📅 Моля, изберете друга дата." });
         }
-        // --- 🛡️ КРАЙ НА ЗАЩИТАТА ---
+        // ---  КРАЙ НА ЗАЩИТАТА ---
 
         const newTrip = {
             hotel: {
@@ -204,7 +204,7 @@ app.post('/api/users/:id/book', async (req, res) => {
 });
 
 // =========================================================================
-// ✈️ ДОБАВЯНЕ НА ЛОГИСТИКА КЪМ СЪЩЕСТВУВАЩА РЕЗЕРВАЦИЯ
+//  ДОБАВЯНЕ НА ЛОГИСТИКА КЪМ СЪЩЕСТВУВАЩА РЕЗЕРВАЦИЯ
 // =========================================================================
 app.post('/api/users/:id/trip/:tripIndex/logistics', async (req, res) => {
     try {
@@ -219,7 +219,7 @@ app.post('/api/users/:id/trip/:tripIndex/logistics', async (req, res) => {
 
         const trip = user.pastTrips[tripIndex];
 
-        // 🚗 АКО КЛИЕНТЪТ ИСКА САМО ХОТЕЛ (БЕЗ ПОЛЕТ)
+        //  АКО КЛИЕНТЪТ ИСКА САМО ХОТЕЛ (БЕЗ ПОЛЕТ)
         if (skipLogistics) {
             trip.status = 'hotel_only';
             trip.flight = null;
@@ -274,7 +274,7 @@ app.post('/api/users/:id/trip/:tripIndex/logistics', async (req, res) => {
 });
 
 // =========================================================================
-// 🗑️ ИЗТРИВАНЕ НА РЕЗЕРВАЦИЯ (ОТ АДМИН ПАНЕЛА)
+//  ИЗТРИВАНЕ НА РЕЗЕРВАЦИЯ (ОТ АДМИН ПАНЕЛА)
 // =========================================================================
 app.delete('/api/users/:id/trip/:tripIndex', async (req, res) => {
     try {
@@ -315,9 +315,11 @@ app.delete('/api/users/:id/trip/:tripIndex', async (req, res) => {
     }
 });
 
+
 // =========================================================================
-// 🚀 ХИБРИДЕН AI МОДЕЛ (THE BRAIN)
+//  ХИБРИДЕН AI МОДЕЛ (ОПТИМИЗИРАН ЗА gemma2:9b и 8GB VRAM)
 // =========================================================================
+
 app.post('/api/chat', async (req, res) => {
     req.setTimeout(120000);
     try {
@@ -325,127 +327,115 @@ app.post('/api/chat', async (req, res) => {
         console.log("--------------------------------------------------");
         console.log(`📩 НОВО СЪОБЩЕНИЕ: "${message}"`);
 
-        const extractPrompt = `Анализирай: "${message}".
-        Мапни към една от: ["Градски туризъм", "Градски лукс", "Еко туризъм", "Еко лукс", "Планинска почивка", "Морска почивка", "Екзотична почивка"].
-        Ако е "артистично", "индустриално", "минималистично", "дизайн" -> "Градски туризъм".
-        Върни САМО JSON: {"budget": 1600, "duration": 4, "location": "Scandinavia", "category": "Градски туризъм"}`;
+        const officialCategories = [
+            "Морска почивка", "Планинска почивка", "Градски туризъм", "Еко туризъм",
+            "Градски лукс", "Екзотична почивка", "Еко лукс", "Културен туризъм",
+            "Пустинно приключение", "Арктическо преживяване", "Винен туризъм",
+            "Кралски лукс", "Екстремен лукс", "Термален Релакс", "Езерна почивка", "Морски круиз"
+        ];
+
+        // 1. AI КЛАСИФИКАЦИЯ
+        const extractPrompt = `Анализирай: "${message}". Избери от: [${officialCategories.join(", ")}].
+        Върни САМО JSON: {"category": "ИМЕ", "location": "English Name or null", "budget": Number, "duration": Number}`;
 
         const extractRes = await ollama.chat({
             model: 'gemma2:9b',
             messages: [{ role: 'user', content: extractPrompt }],
             format: 'json',
-            options: { temperature: 0.1 }
+            options: { temperature: 0.1, num_ctx: 1024 }
         });
 
-        let params = {};
-        try {
-            params = JSON.parse(extractRes.message.content.replace(/```json/gi, '').replace(/```/g, '').trim());
-        } catch (e) {
-            console.log("⚠️ Грешка при парсване на първия JSON, продължавам с празен.");
-        }
+        let params = JSON.parse(extractRes.message.content.replace(/```json/gi, '').replace(/```/g, '').trim());
+        console.log(`🧠 AI КЛАСИФИЦИРА КАТО:`, params.category);
 
-        const duration = Number(params.duration) || 7;
-        const maxBudget = Number(params.budget) || 100000;
-        const maxPricePerNight = maxBudget / duration;
+        const duration = params.duration || 7;
+        const maxPrice = (params.budget || 100000) / duration;
 
-        console.log(`🧠 AI ИЗВЛЕЧЕ:`, params);
+        // 2. ПЪЛЕН СЕМАНТИЧЕН МОСТ (За да не гърми на нито една категория)
+        const semanticBridge = {
+            "Арктическо преживяване": ["лед", "сняг", "студ", "полярен", "арктика", "ледник", "антарктида"],
+            "Кралски лукс": ["замък", "дворец", "крал", "цар", "средновековен", "castle", "palace"],
+            "Морска почивка": ["плаж", "море", "океан", "пясък", "корали", "остров"],
+            "Пустинно приключение": ["пустиня", "пясък", "дюни", "камили", "сафари"],
+            "Екзотична почивка": ["джунгла", "бали", "екзотика", "тропици", "амазонка"],
+            "Планинска почивка": ["ски", "планина", "връх", "алпи", "хижа", "лифт"],
+            "Екстремен лукс": ["адреналин", "скала", "високо", "екстремно", "хеликоптер"],
+            "Термален Релакс": ["спа", "минерална", "басейн", "сауна", "релакс", "джакузи"],
+            "Винен туризъм": ["вино", "лозе", "дегустация", "винарна", "шато"],
+            "Културен туризъм": ["музей", "история", "опера", "галерия", "архитектура"],
+            "Градски лукс": ["пентхаус", "център", "метрополис", "небостъргач"],
+            "Еко лукс": ["природа", "устойчиво", "дърво", "глуха", "тишина"]
+        };
 
-        let dbQuery = { roomsAvailable: { $gt: 0 }, pricePerNight: { $lte: maxPricePerNight } };
+        // 3. УМНО ТЪРСЕНЕ С ВАЛИДАЦИЯ (Защита от MongoServerError)
+        let filteredHotels = [];
 
-        const europe = ["Germany", "Hungary", "Denmark", "Poland", "Austria", "Netherlands", "Greece", "Bulgaria", "Italy", "France", "Spain"];
-        const asia = ["Indonesia", "Vietnam", "Thailand", "Japan", "Maldives"];
-        const scandinavia = ["Denmark", "Norway", "Sweden", "Finland"];
+        // Помощна функция за безопасен Regex
+        const safeRegex = (val) => (val && val !== "null") ? { $regex: String(val), $options: 'i' } : null;
 
-        if (params.location?.toLowerCase() === 'europe') dbQuery.country = { $in: europe };
-        else if (params.location?.toLowerCase() === 'asia') dbQuery.country = { $in: asia };
-        else if (params.location?.toLowerCase() === 'scandinavia') dbQuery.country = { $in: scandinavia };
-        else if (params.location && params.location !== "null") {
-            dbQuery.$or = [
-                { city: { $regex: params.location, $options: 'i' } },
-                { country: { $regex: params.location, $options: 'i' } },
-                { description: { $regex: params.location, $options: 'i' } }
-            ];
-        }
+        // ОПИТ 1: Точно съвпадение
+        let q1 = { roomsAvailable: { $gt: 0 }, pricePerNight: { $lte: maxPrice } };
+        const locRegex = safeRegex(params.location);
+        const catRegex = safeRegex(params.category);
 
-        if (params.category && params.category !== "null") {
-            dbQuery.category = { $regex: params.category.split(' ')[0], $options: 'i' };
-        }
+        if (locRegex) q1.country = locRegex;
+        if (catRegex) q1.category = catRegex;
 
-        let filteredHotels = await Hotel.find(dbQuery).sort({ rating: -1 }).limit(3).lean();
+        filteredHotels = await Hotel.find(q1).sort({ rating: -1 }).limit(3).lean();
 
-        if (filteredHotels.length < 3) {
-            const fallbackQuery = { ...dbQuery };
-            delete fallbackQuery.category;
-            const excludeIds = filteredHotels.map(h => h._id);
-            fallbackQuery._id = { $nin: excludeIds };
+        // ОПИТ 2: Семантично търсене (Ако няма точни резултати)
+        if (filteredHotels.length < 3 && catRegex) {
+            console.log("🔍 Търся по семантичен мост...");
+            const keywords = semanticBridge[params.category] || [params.category];
+            const bridgeRegex = { $regex: keywords.join('|'), $options: 'i' };
 
-            const extraHotels = await Hotel.find(fallbackQuery).limit(3 - filteredHotels.length).lean();
-            filteredHotels = [...filteredHotels, ...extraHotels];
-        }
-
-        if (filteredHotels.length < 3) {
-            const excludeIds = filteredHotels.map(h => h._id);
-            const extraHotels = await Hotel.find({ pricePerNight: { $lte: maxPricePerNight }, _id: { $nin: excludeIds } })
-                .sort({ rating: -1 }).limit(3 - filteredHotels.length).lean();
-            filteredHotels = [...filteredHotels, ...extraHotels];
-        }
-
-        if (filteredHotels.length < 3) {
-            const excludeIds = filteredHotels.map(h => h._id);
-            const extraHotels = await Hotel.find({ _id: { $nin: excludeIds } })
-                .sort({ pricePerNight: 1 }).limit(3 - filteredHotels.length).lean();
-            filteredHotels = [...filteredHotels, ...extraHotels];
-        }
-
-        const hotelList = filteredHotels.map(h => `- ${h.name}`).join("\n");
-        console.log("📝 ХОТЕЛИ КЪМ AI:\n", hotelList);
-
-        const finalPrompt = `Ти си VIP агент. Клиент: "${message}".
-        Предложи ТОЧНО тези хотели:
-        ${hotelList}
-        
-        Върни САМО JSON:
-        {"status": "offer", "duration": ${duration}, "rawText": "Твоят текст тук...", "recommendations": [{"hotelName": "ИМЕ НА ХОТЕЛ", "reason": "защо"}]}`;
-
-        const finalRes = await ollama.chat({
-            model: 'gemma2:9b',
-            messages: [{ role: 'user', content: finalPrompt }],
-            format: 'json'
-        });
-
-        let finalData;
-        try {
-            let cleanStr = finalRes.message.content.replace(/```json/gi, '').replace(/```/g, '').trim();
-            finalData = JSON.parse(cleanStr);
-        } catch (err) {
-            console.log("🚨 AI върна невалиден формат. Активирам АВТОМАТИЧЕН ОТГОВОР!");
-            finalData = {
-                status: "offer",
-                duration: duration,
-                rawText: "Ето най-добрите предложения, които успях да намеря за вашия бюджет:",
-                recommendations: []
+            let q2 = {
+                roomsAvailable: { $gt: 0 },
+                _id: { $nin: filteredHotels.map(h => h._id) },
+                $or: [
+                    { description: bridgeRegex },
+                    { category: catRegex }
+                ]
             };
+            const extra = await Hotel.find(q2).sort({ rating: -1 }).limit(3 - filteredHotels.length).lean();
+            filteredHotels.push(...extra);
         }
 
-        finalData.recommendations = filteredHotels.map((dbHotel, index) => {
-            const aiRec = (finalData.recommendations && finalData.recommendations[index]) ? finalData.recommendations[index] : {};
-            return {
-                hotelName: dbHotel.name,
-                reason: aiRec.reason || "Отличен избор, съобразен с вашия бюджет и предпочитания."
+        // ОПИТ 3: Само локация (Ако категорията е твърде специфична)
+        if (filteredHotels.length < 3 && locRegex) {
+            let q3 = {
+                roomsAvailable: { $gt: 0 },
+                country: locRegex,
+                _id: { $nin: filteredHotels.map(h => h._id) }
             };
-        });
+            const extra = await Hotel.find(q3).limit(3 - filteredHotels.length).lean();
+            filteredHotels.push(...extra);
+        }
 
-        console.log("✅ ИЗПРАЩАМ КЪМ FRONTEND:", JSON.stringify(finalData));
-        res.json(finalData);
+        // ОПИТ 4: Топ хотели (Краен вариант)
+        if (filteredHotels.length < 3) {
+            const filler = await Hotel.find({ _id: { $nin: filteredHotels.map(h => h._id) } }).sort({ rating: -1 }).limit(3 - filteredHotels.length).lean();
+            filteredHotels.push(...filler);
+        }
+
+        // 4. ОТГОВОР
+        res.json({
+            status: "offer",
+            duration: duration,
+            rawText: `За вашето ${params.category || 'преживяване'} подбрах следните места:`,
+            recommendations: filteredHotels.map(h => ({
+                hotelName: h.name,
+                reason: `Уникална атмосфера в ${h.location}. ${h.description.substring(0, 100)}...`
+            }))
+        });
 
     } catch (error) {
-        console.error("❌ СЪРВЪРНА ГРЕШКА:", error);
-        res.status(500).json({ error: "Сървърна грешка" });
+        console.error("❌ ГРЕШКА ПРИ ТЪРСЕНЕ:", error.message);
+        res.status(500).json({ error: "Грешка в базата данни или AI параметрите." });
     }
 });
-
 // =========================================================================
-// 🤖 АДМИН AI ПЕРСОНАЛИЗАЦИЯ
+//  АДМИН AI ПЕРСОНАЛИЗАЦИЯ
 // =========================================================================
 app.post('/api/admin/ai-offer', async (req, res) => {
     req.setTimeout(120000);

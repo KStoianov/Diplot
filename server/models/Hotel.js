@@ -20,7 +20,7 @@ const hotelSchema = new mongoose.Schema({
     description: { type: String },
     roomsAvailable: { type: Number, default: 10 },
 
-    // 📸 ГАЛЕРИЯ С AI СНИМКИ
+    // ГАЛЕРИЯ С AI СНИМКИ
     images: {
         exterior: { type: String, required: true },
         room: { type: String, required: true },
@@ -37,7 +37,7 @@ const hotelSchema = new mongoose.Schema({
         code: { type: String }
     },
 
-    // 🎡 АТРАКЦИИ (Масив от обекти - критично за RoutingMachine)
+    //АТРАКЦИИ (Масив от обекти - критично за RoutingMachine)
     attractions: [attractionSchema]
 });
 

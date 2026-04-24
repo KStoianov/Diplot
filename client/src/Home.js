@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { FiArrowRight, FiStar, FiMapPin, FiCompass, FiSun, FiWind } from 'react-icons/fi';
 
-// 🌍 Вмъкваме езиковия контекст
+// Вмъкваме езиковия контекст
 import { useLanguage } from './components/LanguageContext';
 
-// 🔗 Дефинираме адреса на сървъра
+//  Дефинираме адреса на сървъра
 const API_URL = "http://localhost:5000";
 
-// 📂 Пътищата към твоите 3000x4000 снимки
+//  Пътищата към  3000x4000 снимки
 const dayImages = [
     `${API_URL}/uploads/home_photos/day1.jpg`,
     `${API_URL}/uploads/home_photos/day2.jpg`
@@ -32,7 +32,7 @@ const Home = () => {
     const { t, language } = useLanguage();
     const { scrollY } = useScroll();
 
-    // ✨ ОПТИМИЗИРАНИ ЕФЕКТИ ЗА ВИСОКА РЕЗОЛЮЦИЯ
+    //  ОПТИМИЗИРАНИ ЕФЕКТИ ЗА ВИСОКА РЕЗОЛЮЦИЯ
     const yHero = useTransform(scrollY, [0, 800], [0, 150]);
     const opacityHero = useTransform(scrollY, [0, 400], [1, 0]);
     // Намаляваме максималния blur до 12px, за да не се губи красотата на снимката
@@ -106,7 +106,7 @@ const Home = () => {
     return (
         <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0B1121] font-sans selection:bg-teal-500/30 overflow-hidden relative">
 
-            {/* 🎬 CINEMATIC IMAGE BACKGROUND */}
+            {/*  CINEMATIC IMAGE BACKGROUND */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
                 <motion.div
                     className="absolute inset-0 w-full h-full"
@@ -131,12 +131,12 @@ const Home = () => {
                     </AnimatePresence>
                 </motion.div>
 
-                {/* 🛠️ ОВЪРЛЕЙ ЗА ЧЕТИМОСТ (Увеличен интензитет за по-наситени авторски снимки) */}
+                {/*  ОВЪРЛЕЙ ЗА ЧЕТИМОСТ (Увеличен интензитет за по-наситени авторски снимки) */}
                 <div className="absolute inset-0 bg-white/20 dark:bg-[#0B1121]/75 transition-colors duration-1000"></div>
                 <div className="absolute bottom-0 left-0 w-full h-[70vh] bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA]/60 to-transparent dark:from-[#0B1121] dark:via-[#0B1121]/80 transition-colors duration-1000"></div>
             </div>
 
-            {/* 🕊️ HERO SECTION */}
+            {/*  HERO SECTION */}
             <motion.div
                 className="relative z-10 flex flex-col items-center justify-center min-h-[90vh] px-4 w-full"
                 style={{ y: yHero, opacity: opacityHero }}
@@ -158,7 +158,7 @@ const Home = () => {
                         </p>
                     </motion.div>
 
-                    {/* 🪄 SEARCH BAR */}
+                    {/*  SEARCH BAR */}
                     <motion.div
                         className="w-full max-w-3xl mx-auto relative group"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -189,7 +189,7 @@ const Home = () => {
                         </div>
                     </motion.div>
 
-                    {/* ✨ TAGS */}
+                    {/*  TAGS */}
                     <motion.div
                         className="flex flex-wrap justify-center gap-4 mt-12"
                         initial={{ opacity: 0 }}
@@ -210,7 +210,7 @@ const Home = () => {
                 </div>
             </motion.div>
 
-            {/* 📸 RECOMMENDATIONS SECTION */}
+            {/*  RECOMMENDATIONS SECTION */}
             {recommendedHotels.length > 0 && (
                 <div className="relative z-10 max-w-[1100px] mx-auto px-4 pb-40 pt-20">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12 px-4">

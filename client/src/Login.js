@@ -32,7 +32,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-[#0B1121] font-sans transition-colors relative">
 
-      {/* 🌍 МИНИМАЛИСТИЧЕН ЕЗИКОВ ПРЕВКЛЮЧВАТЕЛ */}
+      {/*  МИНИМАЛИСТИЧЕН ЕЗИКОВ ПРЕВКЛЮЧВАТЕЛ */}
       <div className="absolute top-8 right-8 z-50 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
         <button
           onClick={() => toggleLanguage('bg')}
@@ -49,7 +49,7 @@ const Login = () => {
         </button>
       </div>
 
-      {/* 🚀 ЛЯВА ЧАСТ: Брандинг */}
+      {/*  ЛЯВА ЧАСТ: Брандинг */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-700 to-[#0B1121] text-white items-center justify-center p-12">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
         <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-500/30 rounded-full blur-[120px]"></div>
@@ -74,7 +74,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* 🔐 ДЯСНА ЧАСТ: Форма за вход */}
+      {/*  ДЯСНА ЧАСТ: Форма за вход */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-white dark:bg-[#0B1121] z-10">
 
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>

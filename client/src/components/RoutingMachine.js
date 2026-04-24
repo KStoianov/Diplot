@@ -28,35 +28,32 @@ const RoutingMachine = ({ start, end, mode, setRouteInfo }) => {
             routeWhileDragging: false,
             fitSelectedRoutes: true,
 
-            // 2. ФИКС ЗА ГРОЗНИТЕ МАРКЕРИ
+            // 2. ФИКС ЗА ГРОЗНИТЕ МАРКЕРИ (Оставяме само линията)
             createMarker: function () { return null; }
         });
 
         // Добавяме към картата
         routingControl.addTo(map);
 
-        // 3. ФИКС ЗА ГРОЗНИЯ ЛИСТ
-        const container = document.querySelector('.leaflet-routing-container');
-        if (container) {
-            container.style.display = 'none';
-        }
-
         // Взимаме данните и ги пращаме към левия панел
         routingControl.on('routesfound', (e) => {
-            const summary = e.routes[0].summary;
+            const route = e.routes[0]; // Взимаме целия масив с данни за маршрута
+            const summary = route.summary;
+            
             if (setRouteInfo) {
                 setRouteInfo({
                     distance: (summary.totalDistance / 1000).toFixed(1),
                     time: Math.round(summary.totalTime / 60),
-                    mode
+                    mode,
+                    instructions: route.instructions // 🆕 ИЗВЛИЧАМЕ ИНСТРУКЦИИТЕ ЗА ЗАВОИТЕ
                 });
             }
         });
 
-        // 🛡️ БРОНИРАНО ИЗЧИСТВАНЕ (Край на крашовете!)
+        //  ИЗЧИСТВАНЕ
         return () => {
             try {
-                // Първо изключваме слушателя за да спрем опитите за State Update
+                // Първо изключваме слушателя, за да спрем опитите за State Update
                 routingControl.off('routesfound');
                 // Премахваме маршрута от картата безопасно
                 if (map.hasLayer(routingControl)) {
@@ -67,11 +64,23 @@ const RoutingMachine = ({ start, end, mode, setRouteInfo }) => {
             }
         };
 
-        // 🚨 КРИТИЧНО: Махаме setRouteInfo от масива, за да убием безкрайния луп!
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [map, start?.lat, start?.lng, end?.lat, end?.lng, mode]);
 
-    return null;
+    // 3. ФИКСЪТ ЗА ЧЕРНАТА КУТИЯ: Връщаме CSS директно от компонента!
+    // Това гарантира, че списъкът с упътвания никога няма да се покаже от самата библиотека.
+    return (
+        <style>
+            {`
+                .leaflet-routing-container { 
+                    display: none !important; 
+                }
+                .leaflet-routing-alternatives-container { 
+                    display: none !important; 
+                }
+            `}
+        </style>
+    );
 };
 
 export default RoutingMachine;

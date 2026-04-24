@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiArrowRight } from 'react-icons/fi';
 
-// 🌍 Импортираме контекста и превключвателя за езика
+//  Импортираме контекста и превключвателя за езика
 import { useLanguage } from './components/LanguageContext';
 
 const Register = () => {
@@ -12,7 +12,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 🌍 Взимаме функцията t(), езика и toggleLanguage
+  //  Взимаме функцията t(), езика и toggleLanguage
   const { t, language, toggleLanguage } = useLanguage();
 
   const handleRegister = async (e) => {
@@ -32,7 +32,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 font-sans transition-colors relative">
       
-      {/* 🌍 МИНИМАЛИСТИЧЕН ЕЗИКОВ ПРЕВКЛЮЧВАТЕЛ (Вляво, защото картинката е вдясно) */}
+      {/*  МИНИМАЛИСТИЧЕН ЕЗИКОВ ПРЕВКЛЮЧВАТЕЛ (Вляво, защото картинката е вдясно) */}
       <div className="absolute top-8 left-8 z-50 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
         <button
           onClick={() => toggleLanguage('bg')}
@@ -49,14 +49,14 @@ const Register = () => {
         </button>
       </div>
 
-      {/* 🔐 ЛЯВА ЧАСТ: Форма за регистрация (Смалена и с оригиналния градиент) */}
+      {/*  ЛЯВА ЧАСТ: Форма за регистрация (Смалена и с оригиналния градиент) */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-white dark:bg-slate-900 z-10 shadow-[20px_0_30px_-15px_rgba(0,0,0,0.1)]">
         
         {/* Декоративен ефект - Зелено сияние */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 dark:bg-teal-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         <motion.div
-          className="w-full max-w-sm relative z-10" /* 👈 СМАЛЕНА ШИРИНА (max-w-sm) */
+          className="w-full max-w-sm relative z-10" 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -142,7 +142,7 @@ const Register = () => {
         </motion.div>
       </div>
 
-      {/* 🏔️ ДЯСНА ЧАСТ: Визуален брандинг (С оригиналния Teal градиент вдясно) */}
+      {/*  ДЯСНА ЧАСТ: Визуален брандинг (С оригиналния Teal градиент вдясно) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-slate-900 to-teal-900 text-white items-center justify-center p-12">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
         

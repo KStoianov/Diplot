@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         fetchAllData();
     }, [user, navigate]);
 
-    // ✈️ ДИНАМИЧНО ИЗВЛИЧАНЕ НА ПОЛЕТИ И ТРАНСПОРТ (с имената на клиентите)
+    //  ДИНАМИЧНО ИЗВЛИЧАНЕ НА ПОЛЕТИ И ТРАНСПОРТ (с имената на клиентите)
     const getAllFlights = () => {
         return data.users.flatMap(u => (u.pastTrips || []).filter(t => t.flight).map(t => ({
             ...t.flight, userName: u.name, date: t.bookingDate
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
     const allFlights = getAllFlights();
     const allTransports = getAllTransports();
 
-    // 🛠️ СТИЛ И БЮДЖЕТ
+    //  СТИЛ И БЮДЖЕТ
     const getCalculatedStyle = (targetUser) => {
         if (!targetUser.pastTrips || targetUser.pastTrips.length === 0) return 'Няма история';
         const counts = {};
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
         } catch (error) { console.error(error); alert("Грешка при изтриване!"); }
     };
 
-    // 📅 КАЛЕНДАРНА ЛОГИКА
+    //  КАЛЕНДАРНА ЛОГИКА
     const getNext30Days = () => {
         const dates = [];
         const today = new Date();
@@ -177,7 +177,7 @@ const AdminDashboard = () => {
                             </motion.div>
                         ))}
 
-                        {/* ✈️ ОБНОВЕН ТАБ ПОЛЕТИ */}
+                        {/*  ОБНОВЕН ТАБ ПОЛЕТИ */}
                         {activeTab === 'flights' && allFlights.map((f, idx) => (
                             <div key={idx} className="bg-white/90 dark:bg-slate-800/60 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-lg">
                                 <div className="flex justify-between items-start mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
                             </div>
                         ))}
 
-                        {/* 🚗 ОБНОВЕН ТАБ ТРАНСПОРТ */}
+                        {/*  ОБНОВЕН ТАБ ТРАНСПОРТ */}
                         {activeTab === 'transport' && allTransports.map((t, idx) => (
                             <div key={idx} className="bg-white/90 dark:bg-slate-800/60 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-lg flex flex-col">
                                 <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
                 </motion.div>
             </div>
 
-            {/* 👤 USER MODAL */}
+            {/*  USER MODAL */}
             <AnimatePresence>
                 {selectedUser && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-10 z-[100]">
@@ -290,7 +290,7 @@ const AdminDashboard = () => {
                 )}
             </AnimatePresence>
 
-            {/* 🎟️ ДЕТАЙЛЕН БИЛЕТ MODAL (С ЛОГИСТИКА) */}
+            {/*  ДЕТАЙЛЕН БИЛЕТ MODAL (С ЛОГИСТИКА) */}
             <AnimatePresence>
                 {selectedTrip && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 z-[120]">
@@ -352,7 +352,7 @@ const AdminDashboard = () => {
                 )}
             </AnimatePresence>
 
-            {/* 🏨 ХОТЕЛ + КАЛЕНДАР MODAL */}
+            {/*  ХОТЕЛ + КАЛЕНДАР MODAL */}
             <AnimatePresence>
                 {selectedHotel && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 z-[110]">

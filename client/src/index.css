@@ -32,3 +32,14 @@
         @apply bg-blue-500/30 text-slate-900 dark:text-slate-50;
     }
 }
+
+
+/* Скрива грозния списък с текстови упътвания на картата */
+.leaflet-routing-container {
+    display: none !important;
+}
+
+/* Скрива алтернативните маршрути, за да не се бъркат с основния */
+.leaflet-routing-alternatives-container {
+    display: none !important;
+}

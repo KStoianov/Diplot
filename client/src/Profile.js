@@ -7,7 +7,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// 🌍 ИМПОРТ НА ГЛОБАЛНИЯ ЕЗИК
+//  ИМПОРТ НА ГЛОБАЛНИЯ ЕЗИК
 import { useLanguage } from './components/LanguageContext';
 
 // Fix Leaflet default icon paths
@@ -18,10 +18,10 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
 });
 
-// 🔗 Конфигурация на сървъра
+//  Конфигурация на сървъра
 const API_URL = "http://localhost:5000";
 
-// 📂 Пътища към твоите авторски 3000x4000 снимки
+//  Пътища към твоите авторски 3000x4000 снимки
 const dayImages = [
     `${API_URL}/uploads/home_photos/day1.jpg`,
     `${API_URL}/uploads/home_photos/day2.jpg`
@@ -151,7 +151,7 @@ const Profile = () => {
                 <div className="absolute bottom-0 left-0 w-full h-[60vh] bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA]/70 to-transparent dark:from-[#0B1121] dark:via-[#0B1121]/80 transition-colors duration-1000"></div>
             </div>
 
-            {/* 🕊️ PROFILE HEADER */}
+            {/*  PROFILE HEADER */}
             <div className="relative z-10 pt-32 pb-20 px-4 md:px-8">
                 <motion.div
                     className="max-w-5xl mx-auto bg-white/40 dark:bg-[#151E32]/40 backdrop-blur-3xl border border-white/60 dark:border-white/5 p-8 md:p-12 rounded-[3rem] shadow-2xl flex flex-col md:flex-row items-center gap-10"
@@ -177,7 +177,7 @@ const Profile = () => {
                 </motion.div>
             </div>
 
-            {/* 📸 FAVORITES SECTION */}
+            {/*  FAVORITES SECTION */}
             <div className="relative z-10 max-w-[1100px] mx-auto px-4 pb-40">
                 <div className="flex items-center gap-4 mb-12 px-4">
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">{t('favoritePlaces')}</h2>
@@ -243,7 +243,7 @@ const Profile = () => {
                 )}
             </div>
 
-            {/* 🗺️ MODAL WITH LEAFLET */}
+            {/*  MODAL WITH LEAFLET */}
             <AnimatePresence>
                 {selectedHotel && (
                     <motion.div

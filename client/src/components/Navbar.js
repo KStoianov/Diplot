@@ -28,7 +28,7 @@ const Navbar = () => {
           : 'text-slate-400 hover:text-white hover:bg-white/5'
         }`}
       >
-        🎒 МОИТЕ ПОЧИВКИ
+         МОИТЕ ПОЧИВКИ
       </button>
     </nav>
   );
